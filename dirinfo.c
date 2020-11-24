@@ -1,12 +1,43 @@
 #include <dirent.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int main()
+int main(int argc, char **argv)
 {
 	DIR *curr_dir;
-	curr_dir = opendir("./");
+	char file_path_and_name[150];
+	//char *file_part_of_path;
+	if (argc > 1)
+	{
+		curr_dir = opendir(argv[1]);
+		strcpy(file_path_and_name, argv[1]);
+	}
+	else
+	{
+		char buffer[100];
+		printf("What directory do you want read? : ");
+		fgets(buffer, sizeof(buffer), stdin);
+		int i = 0;
+		while (buffer[i] && i < 100)
+		{
+			if (!('\n' - buffer[i]))
+			{
+				buffer[i] = 0;
+			}
+			i++;
+		}
+		//printf("Buffer: %sEND\n",buffer);
+		//printf("cmp: %d\n",strcmp("./",buffer));
+		curr_dir = opendir(buffer);
+		strcpy(file_path_and_name, buffer);
+	}
+
+	//printf("len of dir stuffs: %lu\n",strlen(file_path_and_name));
+	int path_cut = strlen(file_path_and_name);
+	//curr_dir = opendir("./");
 
 	struct dirent *entry;
 
@@ -20,9 +51,11 @@ int main()
 	{
 		if (entry->d_type == 8)
 		{
+			strcat(file_path_and_name, entry->d_name);
 			num_files++;
-			stat(entry->d_name, &file_info);
+			stat(file_path_and_name, &file_info);
 			file_size += file_info.st_size;
+			file_path_and_name[path_cut] = 0;
 		}
 		else
 		{
@@ -36,7 +69,7 @@ int main()
 
 	//Assign files to file array and dirs to dir array
 	char *dir_array[num_dirs];
-	char *file_array[num_files];
+	struct dirent *file_array[num_files];
 
 	int d = 0;
 	int f = 0;
@@ -47,7 +80,7 @@ int main()
 		//printf("name:%s\ttype: %d\n",entry->d_name,entry->d_type);
 		if (entry->d_type == 8)
 		{
-			file_array[f] = entry->d_name;
+			file_array[f] = entry;
 			f++;
 		}
 		else
@@ -65,9 +98,7 @@ int main()
 	//printf("f: %d\td: %d\n",f,d);
 
 	//Print total file size
-	printf("\nTotal file size: %d\n",file_size);
-
-
+	printf("\nTotal file size: %d\n", file_size);
 
 	//-1 since last while loop ended after char array end
 	d = d - 1;
@@ -82,18 +113,12 @@ int main()
 	printf("\n");
 	while (f >= 0)
 	{
-		printf("F: %s\n", file_array[f]);
+		strcat(file_path_and_name, file_array[f]->d_name);
+		stat(file_path_and_name, &file_info);
+		file_path_and_name[path_cut] = 0;
+		printf("%ld bytes - F: %s\n", file_info.st_size, file_array[f]->d_name);
 		f--;
 	}
-
-	/*
-	entry = readdir(curr_dir);
-	while (entry)
-	{
-		printf("Type:%d\tName: %s\n", entry->d_type, entry->d_name);
-		entry = readdir(curr_dir);
-	}
-	*/
 
 	rewinddir(curr_dir);
 	closedir(curr_dir);
