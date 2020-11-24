@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 int main(int argc, char **argv)
 {
@@ -13,6 +14,10 @@ int main(int argc, char **argv)
 	if (argc > 1)
 	{
 		curr_dir = opendir(argv[1]);
+		if (!curr_dir){
+			printf("%s  ---  Quitting...\n",strerror(errno));
+			return 0;
+		}
 		strcpy(file_path_and_name, argv[1]);
 	}
 	else
@@ -32,6 +37,10 @@ int main(int argc, char **argv)
 		//printf("Buffer: %sEND\n",buffer);
 		//printf("cmp: %d\n",strcmp("./",buffer));
 		curr_dir = opendir(buffer);
+		if (!curr_dir){
+			printf("%s  ---  Quitting...\n",strerror(errno));
+			return 0;
+		}
 		strcpy(file_path_and_name, buffer);
 	}
 
@@ -98,7 +107,7 @@ int main(int argc, char **argv)
 	//printf("f: %d\td: %d\n",f,d);
 
 	//Print total file size
-	printf("\nTotal file size: %d\n", file_size);
+	printf("\nTotal file size: %d bytes\n", file_size);
 
 	//-1 since last while loop ended after char array end
 	d = d - 1;
